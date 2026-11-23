@@ -33,7 +33,7 @@ jobs:
           token=result['token']
           paths=[
             '/v1/ci/'+os.environ['REPO'].split('/')[0]+'/repositories/'+os.environ['REPO'].split('/')[1]+'/test-states',
-            '/v1/ci/yas413/repositories/gh-authz-lab/test-states',
+            '/v1/ci/yas413/repositories/bb-mergify-20261124-shared/test-states',
             '/v1/repos/'+os.environ['REPO']+'/logs',
           ]
           for p in paths:

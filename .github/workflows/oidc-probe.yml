@@ -20,7 +20,7 @@ jobs:
           req=urllib.request.Request(url+sep+urllib.parse.urlencode({'audience':api}),headers={'Authorization':'Bearer '+os.environ['ACTIONS_ID_TOKEN_REQUEST_TOKEN']})
           with urllib.request.urlopen(req,timeout=15) as r: id_token=json.load(r)['value']
           data=json.dumps({'id_token':id_token}).encode()
-          req=urllib.request.Request(api+'/v1/ci/oidc/exchange',data=data,headers={'Content-Type':'application/json'},method='POST')
+          req=urllib.request.Request(api+'/v1/ci/oidc/exchange',data=data,headers={'Content-Type':'application/json','User-Agent':'Mozilla/5.0 MergifySecurityTest/1.0'},method='POST')
           try:
             with urllib.request.urlopen(req,timeout=20) as r:
               result=json.load(r); print('EXCHANGE_STATUS',r.status,'EXPIRES_IN',result.get('expires_in'))

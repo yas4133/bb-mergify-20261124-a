@@ -37,7 +37,7 @@ jobs:
             '/v1/repos/'+os.environ['REPO']+'/logs',
           ]
           for p in paths:
-            req=urllib.request.Request(api+p,headers={'Authorization':'Bearer '+token,'Accept':'application/json'})
+            req=urllib.request.Request(api+p,headers={'Authorization':'Bearer '+token,'Accept':'application/json','User-Agent':'Mozilla/5.0 MergifySecurityTest/1.0'})
             try:
               with urllib.request.urlopen(req,timeout=20) as r: print('CHECK',p,'STATUS',r.status)
             except urllib.error.HTTPError as e:

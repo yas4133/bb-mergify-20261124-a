@@ -1,0 +1,46 @@
+name: Owned Mergify OIDC boundary probe
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Exchange GitHub ID token and check only owned resources
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import os, urllib.parse, urllib.request, json, urllib.error
+          api='https://api.mergify.com'
+          url=os.environ['ACTIONS_ID_TOKEN_REQUEST_URL']
+          sep='&' if '?' in url else '?'
+          req=urllib.request.Request(url+sep+urllib.parse.urlencode({'audience':api}),headers={'Authorization':'Bearer '+os.environ['ACTIONS_ID_TOKEN_REQUEST_TOKEN']})
+          with urllib.request.urlopen(req,timeout=15) as r: id_token=json.load(r)['value']
+          data=json.dumps({'id_token':id_token}).encode()
+          req=urllib.request.Request(api+'/v1/ci/oidc/exchange',data=data,headers={'Content-Type':'application/json'},method='POST')
+          try:
+            with urllib.request.urlopen(req,timeout=20) as r:
+              result=json.load(r); print('EXCHANGE_STATUS',r.status,'EXPIRES_IN',result.get('expires_in'))
+          except urllib.error.HTTPError as e:
+            try: body=json.load(e)
+            except: body={}
+            print('EXCHANGE_STATUS',e.code,'ERROR_CODE',body.get('error_code'))
+            raise SystemExit(0)
+          token=result['token']
+          paths=[
+            '/v1/ci/'+os.environ['REPO'].split('/')[0]+'/repositories/'+os.environ['REPO'].split('/')[1]+'/test-states',
+            '/v1/ci/yas413/repositories/gh-authz-lab/test-states',
+            '/v1/repos/'+os.environ['REPO']+'/logs',
+          ]
+          for p in paths:
+            req=urllib.request.Request(api+p,headers={'Authorization':'Bearer '+token,'Accept':'application/json'})
+            try:
+              with urllib.request.urlopen(req,timeout=20) as r: print('CHECK',p,'STATUS',r.status)
+            except urllib.error.HTTPError as e:
+              try: body=json.load(e)
+              except: body={}
+              print('CHECK',p,'STATUS',e.code,'ERROR_CODE',body.get('error_code'))
+          PY

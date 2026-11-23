@@ -1,1 +1,1 @@
-Owned B test PR. No secrets. Tests whether Mergify still executes removed source rule after owner config replacement.
+Owned Mergify cache/PR test. Revision 2. No secrets.
